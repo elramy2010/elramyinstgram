@@ -4,9 +4,14 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:instagram_app/firebase_services/auth.dart';
 import 'package:instagram_app/screens/sign_in.dart';
 import 'package:instagram_app/shared/colors.dart';
 import 'package:instagram_app/shared/contants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:instagram_app/shared/snackbar.dart';
 
 import 'dart:io';
 
@@ -120,35 +125,6 @@ class _RegisterState extends State<Register> {
   //     },
   //   );
   // }
-
-  onPasswordChanged(String password) {
-    isPassword8Char = false;
-    isPasswordHas1Number = false;
-    hasUppercase = false;
-    hasLowercase = false;
-    hasSpecialCharacters = false;
-    setState(() {
-      if (password.contains(RegExp(r'.{8,}'))) {
-        isPassword8Char = true;
-      }
-
-      if (password.contains(RegExp(r'[0-9]'))) {
-        isPasswordHas1Number = true;
-      }
-
-      if (password.contains(RegExp(r'[A-Z]'))) {
-        hasUppercase = true;
-      }
-
-      if (password.contains(RegExp(r'[a-z]'))) {
-        hasLowercase = true;
-      }
-
-      if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
-        hasSpecialCharacters = true;
-      }
-    });
-  }
 
 //   register() async {
 //     setState(() {
@@ -315,13 +291,11 @@ class _RegisterState extends State<Register> {
                     height: 22,
                   ),
                   TextFormField(
-                      onChanged: (password) {
-                        onPasswordChanged(password);
-                      },
+                      onChanged: (password) {},
                       // we return "null" when something is valid
                       validator: (value) {
-                        return value!.length < 8
-                            ? "Enter at least 8 characters"
+                        return value!.length < 6
+                            ? "Enter at least 6 characters"
                             : null;
                       },
                       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -344,18 +318,31 @@ class _RegisterState extends State<Register> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
-                      // if (_formKey.currentState!.validate() &&
-                      //     imgName != null &&
-                      //     imgPath != null) {
-                      //   await register();
-                      //   if (!mounted) return;
-                      //   Navigator.pushReplacement(
-                      //     context,
-                      //     MaterialPageRoute(builder: (context) => Login()),
-                      //   );
-                      // } else {
-                      //   showSnackBar(context, "ERROR");
-                      // }
+                      if (_formKey.currentState!.validate()
+
+                          //  &&
+                          // imgName != null &&
+                          // imgPath != null
+                          ) {
+                        setState(() {
+                          isLoading = true;
+                        });
+                        await AuthMethods().register(
+                            emailll: emailController.text,
+                            pasworddd: passwordController.text,
+                            context: context);
+                        setState(() {
+                          isLoading = false;
+                        });
+
+                        if (!mounted) return;
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => Login()),
+                        );
+                      } else {
+                        showSnackBar(context, "ERROR");
+                      }
                     },
                     child: isLoading
                         ? CircularProgressIndicator(
